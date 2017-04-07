@@ -7,6 +7,7 @@ HTML MAIL PARSER
 
 * run ```npm install cheerio```
 * run ```npm install slashes```
+* run ```npm install moment```
 
 ### Run the program
 

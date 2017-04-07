@@ -17,11 +17,11 @@ fs.readFile('test.html', 'utf-8', (err, data) =>
     var trips = {};
     trips.code = getCode($);
     trips.name = getName($);
-    trips.price = getPrice($);
-    trips.trip = getTrip($);
-    // trips.train = getTrain($);
-    trips.passengers = getPassengers($);
-    console.log(trips);
+    trips.details = {};
+    trips.details.price = getPrice($);
+    trips.details.roundTrips = getTrip($);
+    console.log(JSON.stringify(trips, null, 2));
+    // trips.passengers = getPassengers($);
 });
 
 
@@ -35,14 +35,14 @@ var getCode = function($)
 var getName = function($)
 {
     var htmlElement = $(".pnr-name .pnr-info").last();
-    var name = htmlElement.text().replace(/\s/g,'');
+    var name = htmlElement.text().replace(/\s/g, '');
     return name;
 }
 
 var getPrice = function($)
 {
     var htmlElement = $(".total-amount .very-important");
-    var price = htmlElement.text().replace(/\s/g,'');
+    var price = htmlElement.text().replace(/\s/g, '');
     price = price.replace(",", ".");
     price = price.replace("€", "");
     return price;
@@ -57,47 +57,31 @@ var getType = function($)
 
 var getTrip = function($)
 {
-    var roundTrips = {};
-    var trains = {};
-    roundTrips.type = $(".travel-way").text();
-    // roundTrips.date = $(".pnr-summary").text().split(" ")[5];
-    $(".travel-way").each(function(index, element){
-        roundTrips.type = $(element).text();
-        roundTrips.date = $(".pnr-summary").text().split(" ")[5];
-        trains.departureTime = $(".segment-departure").text().split("  ")[index*3].replace(/\s/g,'');
-        trains.departureStation = $(".segment-departure").text().split("  ")[(index*3)+1];
-        trains.arrivalTime = $(".segment-arrival").text().split("  ")[index*2].replace(/\s/g,'');
-        trains.arrivalStation = $(".segment-arrival").text().split("  ")[(index*2)+1];
-        trains.type = $(".segment").text().split("  ")[index*3].replace(/\s/g,'');
-        trains.number = $(".segment").text().split("  ")[(index*3)+1];
-        console.log(roundTrips);
-        console.log(trains);
-        console.log("\r");
+    var roundTrips = [];
+    $(".travel-way").each(function(index, element)
+    {
+        var trip = {
+            trains: [
+            {}]
+        };
+        trip.type = $(element).text().replace(/\s/g, '');
+        // trip.date = $(".pnr-summary").text().split(" ")[5];
+        // trip.date = trip.date.split(";")[1];
+        trip.trains[0].departureTime = $(".segment-departure").eq(index * 3).text().replace(/\s/g, '');
+        trip.trains[0].departureStation = $(".segment-departure").eq((index * 3) + 1).text();
+        trip.trains[0].arrivalTime = $(".segment-arrival").eq(index * 2).text().replace(/\s/g, '');
+        trip.trains[0].arrivalStation = $(".segment-arrival").eq((index * 2) + 1).text();
+        trip.trains[0].type = $(".segment").eq(index * 3).text().replace(/\s/g, '');
+        trip.trains[0].number = $(".segment").eq((index * 3) + 1).text();
+        roundTrips.push(trip);
     })
     return roundTrips;
-    return trains;
 }
 
-// var getTrain = function($)
+// var getPassengers = function($)
 // {
-//     var train = {};
-//     train.departureTime = $(".segment-departure").text().split("  ")[0].replace(/\s/g,'');
-//     train.departureStation = $(".segment-departure").text().split("  ")[1];
-//     train.arrivalTime = $(".segment-arrival").text().split("  ")[0].replace(/\s/g,'');
-//     train.arrivalStation = $(".segment-arrival").text().split("  ")[1];
-//     train.type = $(".segment").text().split("  ")[0].replace(/\s/g,'');
-//     train.number = $(".segment").text().split("  ")[1];
-//
-//     $(".segment-departure").each(function(index,element){
-//         console.log($(element).text().split("  ")[0].replace(/\s/g,''));
-//     });
-//     return train;
+//     var passengers = {};
+//     passengers.type = $(".fare-nam").text();
+//     // passengers.age = $("");
+//     return passengers;
 // }
-
-var getPassengers = function($)
-{
-    var passengers = {};
-    passengers.type = $(".fare-nam").text();
-    // passengers.age = $("");
-    return passengers;
-}
