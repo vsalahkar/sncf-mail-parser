@@ -10,4 +10,4 @@ HTML MAIL PARSER
 
 ### Run the program
 
-* run ```node test2.js``` in the directory
+* run ```node test.js``` in the directory
