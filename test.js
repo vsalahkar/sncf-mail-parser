@@ -58,6 +58,13 @@ var getType = function($)
 var getTrip = function($)
 {
     var roundTrips = [];
+    var dates = $(".pnr-summary").text().split(" ");
+    function filtreTexte(requete) {
+      return dates.filter((el) =>
+        el.indexOf(requete) > -1
+      );
+    }
+    
     $(".travel-way").each(function(index, element)
     {
         var trip = {
@@ -65,8 +72,7 @@ var getTrip = function($)
             {}]
         };
         trip.type = $(element).text().replace(/\s/g, '');
-        // trip.date = $(".pnr-summary").text().split(" ")[5];
-        // trip.date = trip.date.split(";")[1];
+        trip.date = filtreTexte("/20")[index].split(";")[1];
         trip.trains[0].departureTime = $(".segment-departure").eq(index * 3).text().replace(/\s/g, '');
         trip.trains[0].departureStation = $(".segment-departure").eq((index * 3) + 1).text();
         trip.trains[0].arrivalTime = $(".segment-arrival").eq(index * 2).text().replace(/\s/g, '');
