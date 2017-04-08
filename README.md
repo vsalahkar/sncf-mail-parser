@@ -11,4 +11,6 @@ HTML MAIL PARSER
 
 ### Run the program
 
-* run ```node test.js``` in the directory
+* run ```node index.js``` in the directory
+* The result is *test-result.json*
+* *test-result2.json* was the expected result & *coin.html* the beautiful cleaned mail
