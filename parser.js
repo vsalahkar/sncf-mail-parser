@@ -1,15 +1,9 @@
 var cheerio = require('cheerio');
-var fs = require('fs');
-var slashes = require('slashes');
 var moment = require('moment');
 
-fs.readFile('test.html', 'utf-8', (err, data) =>
+var parseMail = function(mailHTML)
 {
-    if (err) throw err;
-    data = data.replace(/(?:\\[rn]|[\r\n]+)+/g, "\n");
-    data = slashes.strip(data);
-    //console.log(data);
-    $ = cheerio.load(data,
+    $ = cheerio.load(mailHTML,
     {
         ignoreWhitespace: true,
         xmlMode: true
@@ -22,13 +16,13 @@ fs.readFile('test.html', 'utf-8', (err, data) =>
     trips.details = {};
     trips.details.price = getPrice($);
     trips.details.roundTrips = getTrip($);
-    result.trips = [{}];
+    result.trips = [
+    {}];
     result.trips[0] = trips;
     result.custom = getCustom($);
-    console.log(JSON.stringify(result, null, 2));
-    // custom = getCustom($);
-    // console.log(custom);
-});
+    // console.log(JSON.stringify(result, null, 2));
+    return result;
+}
 
 // Code commande
 var getCode = function($)
@@ -118,3 +112,5 @@ var getPassengers = function($)
     passengers.age = $(".typology").eq(2).text().split("passager ")[1];
     return passengers;
 }
+
+module.exports.parseMail = parseMail;
