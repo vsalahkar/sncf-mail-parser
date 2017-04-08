@@ -14,18 +14,23 @@ fs.readFile('test.html', 'utf-8', (err, data) =>
         ignoreWhitespace: true,
         xmlMode: true
     });
+    var result = {};
     var trips = {};
+    var custom = {};
     trips.code = getCode($);
     trips.name = getName($);
     trips.details = {};
     trips.details.price = getPrice($);
     trips.details.roundTrips = getTrip($);
-    console.log(JSON.stringify(trips, null, 2));
-    trips.passengers = getPassengers($);
-    console.log(trips);
+    result.trips = [{}];
+    result.trips[0] = trips;
+    result.custom = getCustom($);
+    console.log(JSON.stringify(result, null, 2));
+    // custom = getCustom($);
+    // console.log(custom);
 });
 
-
+// Code commande
 var getCode = function($)
 {
     var htmlElement = $(".pnr-ref").last();
@@ -33,6 +38,7 @@ var getCode = function($)
     return code;
 }
 
+// Nom commande
 var getName = function($)
 {
     var htmlElement = $(".pnr-name .pnr-info").last();
@@ -40,6 +46,7 @@ var getName = function($)
     return name;
 }
 
+// Prix total commande
 var getPrice = function($)
 {
     var htmlElement = $(".total-amount .very-important");
@@ -49,26 +56,30 @@ var getPrice = function($)
     return price;
 }
 
-var getType = function($)
+var getCustom = function($)
 {
-    var htmlElement = $(".travel-way");
-    var type = htmlElement.text();
-    return type;
+    var custom = {
+        prices: []
+    };
+    var priceElements = $('.cell:nth-child(3n+1), .amount');
+    priceElements.each(function(i, el)
+    {
+        custom.prices.push(
+        {
+            value: $(el).text().replace(",", ".").replace("€", "").replace(/\s/g, '').replace("&nbsp;&nbsp;", "")
+        })
+    })
+    return custom;
 }
 
+// Trajets commande
 var getTrip = function($)
 {
     var roundTrips = [];
     var dates = $(".pnr-summary").text().split(" ");
+    var dates = dates.filter((el) => el.indexOf("/20") > -1);
 
-    function filtreTexte(requete)
-    {
-        return dates.filter((el) =>
-            el.indexOf(requete) > -1
-        );
-    }
-
-    $(".travel-way").each(function(index, element)
+    $(".travel-way").each(function(tripIndex, tripElement)
     {
         var trip = {
             trains: [
@@ -77,23 +88,24 @@ var getTrip = function($)
             }]
         };
 
-        trip.type = $(element).text().replace(/\s/g, '');
-        trip.date = filtreTexte("/20")[index].split(";")[1];
+        trip.type = $(tripElement).text().replace(/\s/g, '');
+        trip.date = dates[tripIndex].split(";")[1];
         trip.date = moment(trip.date, "DD-MM-YYYY").format("YYYY-MM-DD") + " 00:00:00.000Z";
-        trip.trains[0].departureTime = $(".segment-departure").eq(index * 3).text().replace(/\s/g, '');
-        trip.trains[0].departureStation = $(".segment-departure").eq((index * 3) + 1).text();
-        trip.trains[0].arrivalTime = $(".segment-arrival").eq(index * 2).text().replace(/\s/g, '');
-        trip.trains[0].arrivalStation = $(".segment-arrival").eq((index * 2) + 1).text();
-        trip.trains[0].type = $(".segment").eq(index * 3).text().replace(/\s/g, '');
-        trip.trains[0].number = $(".segment").eq((index * 3) + 1).text();
-        $(".passengers").eq(index).find(".typology").each(function(index, element){
-            var isEchangeable = $(element).siblings().filter('.fare-details').text().includes("Billet échangeable");
-            trip.trains[0].passengers.push({
-                age : $(element).text().split("passager ")[1],
-                type : isEchangeable ? "échangeable" : "non échangeable"
+        trip.trains[0].departureTime = $(".segment-departure").eq(tripIndex * 3).text().replace(/\s/g, '');
+        trip.trains[0].departureStation = $(".segment-departure").eq((tripIndex * 3) + 1).text();
+        trip.trains[0].arrivalTime = $(".segment-arrival").eq(tripIndex * 2).text().replace(/\s/g, '');
+        trip.trains[0].arrivalStation = $(".segment-arrival").eq((tripIndex * 2) + 1).text();
+        trip.trains[0].type = $(".segment").eq(tripIndex * 3).text().replace(/\s/g, '');
+        trip.trains[0].number = $(".segment").eq((tripIndex * 3) + 1).text();
+        $(".passengers").eq(tripIndex).find(".typology").each(function(i, passengerElement)
+        {
+            var isEchangeable = $(passengerElement).siblings().filter('.fare-details').text().includes("Billet échangeable");
+            trip.trains[0].passengers.push(
+            {
+                age: $(passengerElement).text().split("passager ")[1],
+                type: isEchangeable ? "échangeable" : "non échangeable"
             })
         })
-        console.log();
         roundTrips.push(trip);
     })
     return roundTrips;
